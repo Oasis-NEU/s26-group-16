@@ -1,20 +1,15 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+// import function from homescreen
+import HomeScreen from './src/screens/HomeScreen'
+import {NavigationContainer} from '@react-navigation/native'
+import TabNavigator from './src/navigation/TabNav'
 
+// main function/entry point to start app's frontend
+// will be called on expo's servers
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+    // Container for main navigation (i.e the bottom tab)
+    <NavigationContainer>
+      <TabNavigator/>
+    </NavigationContainer>
+  )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
