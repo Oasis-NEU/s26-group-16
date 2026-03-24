@@ -1,8 +1,10 @@
 // Empty Profile Screen
 
-import {ScrollView, View, Text, StyleSheet} from 'react-native'
+import { ScrollView, View, Text, StyleSheet } from 'react-native'
+import WorkoutCard from '../components/WorkoutCard'
 
-export default function ProfileScreen(){
+
+export default function ProfileScreen() {
     return (
         <ScrollView style={styles.container}>
             <Text styles={styles.desc}>profile</Text>
@@ -13,7 +15,7 @@ export default function ProfileScreen(){
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f407f8'
+        backgroundColor: '#5acc19'
     },
     text: {
         fontSize: 15,
