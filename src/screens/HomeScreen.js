@@ -1,6 +1,6 @@
 // Home screen (In progress)
 
-import {View, ScrollView, StyleSheet, Text} from 'react-native'
+import { View, ScrollView, StyleSheet, Text } from 'react-native'
 import HeroCard from '../components/HeroCard'
 import StatCard from '../components/StatCard'
 import BadgeCard from '../components/BadgeCard'
@@ -10,10 +10,10 @@ import DailyChallenge from '../components/DailyChallenge'
 // function to display the home screen/page
 export default function HomeScreen() {
     return (
-        <ScrollView style = {styles.container}>
+        <ScrollView style={styles.container}>
             {/* Greetings */}
             <HeroCard />
-            
+
             {/* Mini-stats */}
             <View style={styles.grid}>
                 <View style={styles.row}>
@@ -28,12 +28,12 @@ export default function HomeScreen() {
 
             {/* Badges */}
             <Text style={styles.sectionTitle}> Top Badges </Text>
-            
-                <View style={styles.badgeRow}>
-                    <BadgeCard icon="🏆" name="Glorious Protein King" color="#ef0808" />
-                    <BadgeCard icon="🔥" name="You're Hot!" color="#faa404" />
-                    <BadgeCard icon="67" name="67" color="hsl(119, 91%, 50%)" />
-                </ View>
+
+            <View style={styles.badgeRow}>
+                <BadgeCard icon="🏆" name="Glorious Protein King" color="#ef0808" />
+                <BadgeCard icon="🔥" name="You're Hot!" color="#faa404" />
+                <BadgeCard icon="67" name="67" color="hsl(119, 91%, 50%)" />
+            </ View>
 
             {/* Challenges (TODO) */}
             <DailyChallenge
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({ // stylsheet.create better for performance
     grid: {
         marginHorizontal: 5,
     },
-    
+
     row: {
         flexDirection: 'row',
     },
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({ // stylsheet.create better for performance
         marginTop: 10,
         marginBottom: 5,
     },
-    
+
     badgeRow: {
         flexDirection: 'row',
         justifyContent: 'center',
