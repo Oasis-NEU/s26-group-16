@@ -13,9 +13,6 @@ export default function MoreScreen() {
             <MenuList />
             <MoreFooter />
 
-            <TouchableOpacity style={styles.logoutButton}>
-                <Text style={styles.logoutText}>Logout</Text>
-            </TouchableOpacity>
         </ScrollView>
     )
 }
@@ -38,20 +35,5 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         color: '#6b7280',
         marginBottom: 16,
-    },
-    logoutButton: {
-        backgroundColor: '#ffffff',
-        borderRadius: 20,
-        borderWidth: 4,
-        borderColor: '#ef4444',
-        paddingVertical: 16,
-        alignItems: 'center',
-        marginVertical: 10,
-        elevation: 6,
-    },
-    logoutText: {
-        color: '#ef4444',
-        fontSize: 18,
-        fontWeight: '900',
     },
 })
