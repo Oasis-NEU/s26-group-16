@@ -12,12 +12,12 @@ function StatBox({ emoji, value, label }) {
     )
 }
 
-export default function StatsGrid() {
+export default function StatsGrid({ workouts, daysActive, totalXP }) {
     return (
         <View style={styles.grid}>
-            <StatBox emoji="📈" value="24" label="Workouts" />
-            <StatBox emoji="❤️" value="12" label="Days Active" />
-            <StatBox emoji="⚡" value="850" label="Total XP" />
+            <StatBox emoji="📈" value={workouts} label="Workouts" />
+            <StatBox emoji="❤️" value={daysActive} label="Days Active" />
+            <StatBox emoji="⚡" value={totalXP} label="Total XP" />
         </View>
     )
 }
