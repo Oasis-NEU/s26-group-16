@@ -9,14 +9,14 @@ function InfoRow({ label, value }) {
     )
 }
 
-export default function PersonalInfo() {
+export default function PersonalInfo({ data }) {
     return (
         <View style={styles.shadowWrapper}>
             <View style={styles.card}>
                 <Text style={styles.title}>Personal Info</Text>
-                <InfoRow label="Member Since" value="January 2026" />
-                <InfoRow label="Favorite Workout" value="Upper Body Blast" />
-                <InfoRow label="Weekly Goal" value="5 workouts" />
+                {data.map((item, index) => (
+                    <InfoRow key={index} label={item.key} value={item.value} />
+                ))}
             </View>
         </View>
     )

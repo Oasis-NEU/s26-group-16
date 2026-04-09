@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 
-export default function ProfileHeader() {
+export default function ProfileHeader({ level, currentXP, goalXP }) {
     return (
         <View style={styles.shadowWrapper}>
             <LinearGradient
@@ -17,7 +17,7 @@ export default function ProfileHeader() {
                     </View>
                     <View>
                         <Text style={styles.name}>Gym Hero</Text>
-                        <Text style={styles.level}>Level 12 Champion</Text>
+                        <Text style={styles.level}>Level {level} Champion</Text>
                     </View>
                 </View>
 
@@ -25,7 +25,7 @@ export default function ProfileHeader() {
                 <View style={styles.xpBarBackground}>
                     <View style={styles.xpBarFill} />
                 </View>
-                <Text style={styles.xpText}>750/1000 XP to Level 13</Text>
+                <Text style={styles.xpText}>{currentXP}/{goalXP} XP to Level {level + 1}</Text>
             </LinearGradient>
         </View>
     )
