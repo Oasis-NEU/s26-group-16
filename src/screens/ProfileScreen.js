@@ -3,32 +3,35 @@ import ProfileHeader from '../components/ProfileHeader'
 import StatsGrid from '../components/StatsGrid'
 import BadgesSection from '../components/BadgesSection'
 import PersonalInfo from '../components/PersonalInfo'
+import { supabase } from '../lib/supabase'
 
 let level = 12;
 let currentXP = 750;
 let goalXP = 1000;
-
 let workouts = 24;
 let daysActive = 12; // in hours
 let totalXP = 6700;
-
 let personalInfo = [
     { key: 'Memeber Since:', value: "January 2023" },
     { key: 'Favorite Workout:', value: "Upperbody Blast" },
     { key: 'Weekly Goal:', value: "5 Workouts" },
 ]
+
 export default function ProfileScreen() {
+    const handleLogout = async () => {
+        await supabase.auth.signOut()
+    }
+
     return (
         <ScrollView style={styles.container}>
             <ProfileHeader level={level} currentXP={currentXP} goalXP={goalXP} />
             <StatsGrid workouts={workouts} daysActive={daysActive} totalXP={totalXP} />
             <BadgesSection />
             <PersonalInfo data={personalInfo} />
-
             <TouchableOpacity style={styles.settingsButton}>
                 <Text style={styles.settingsButtonText}>⚙️  Edit Profile</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.logoutButton}>
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                 <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>
         </ScrollView>

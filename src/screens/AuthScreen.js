@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 export default function AuthScreen() {
     // State to track which mode we're in
     const [mode, setMode] = useState('login') // 'login' or 'signup'
+    const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -15,9 +16,16 @@ export default function AuthScreen() {
             const { error } = await supabase.auth.signInWithPassword({ email, password })
             if (error) Alert.alert('Error', error.message)
         } else {
-            const { error } = await supabase.auth.signUp({ email, password })
-            if (error) Alert.alert('Error', error.message)
-            else Alert.alert('Success', 'Account created! You can now log in.')
+            const { data, error } = await supabase.auth.signUp({ email, password })
+            if (error) {
+                Alert.alert('Error', error.message)
+            } else {
+                // Save the name to the users table
+                await supabase
+                    .from('users')
+                    .update({ name })
+                    .eq('auth_id', data.user.id)
+            }
         }
         setLoading(false)
     }
@@ -30,8 +38,8 @@ export default function AuthScreen() {
             </View>
 
             {/* Title */}
-            <Text style={styles.title}>Gym Tracker</Text>
-            <Text style={styles.subtitle}>Start your fitness journey</Text>
+            <Text style={styles.title}>Welcome To Wacow!</Text>
+            <Text style={styles.subtitle}>Start Your Fitness Journey Here</Text>
 
             {/* Card */}
             <View style={styles.card}>
@@ -48,6 +56,20 @@ export default function AuthScreen() {
                         <Text style={[styles.toggleText, mode === 'signup' && styles.toggleTextActive]}>Sign Up</Text>
                     </TouchableOpacity>
                 </View>
+
+                {/* Name input - only shows for signup */}
+                {mode === 'signup' && (
+                    <>
+                        <Text style={styles.label}>Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Enter your name"
+                            value={name}
+                            onChangeText={setName}
+                            autoCapitalize="words"
+                        />
+                    </>
+                )}
 
                 {/* Email input */}
                 <Text style={styles.label}>Email</Text>
