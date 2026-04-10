@@ -4,6 +4,19 @@ import { View, ScrollView, StyleSheet, Text } from 'react-native'
 import HeroCard from '../components/HeroCard'
 import StatCard from '../components/StatCard'
 import BadgeCard from '../components/BadgeCard'
+import DailyChallenge from '../components/DailyChallenge'
+
+let dayStreak = 69;
+let workouts = 420;
+let xpPoints = 888;
+let achievements = 0;
+
+//daily challenege
+let challenge = "Complete 30 push-ups today!";
+let current = 69;
+let total = 30;
+
+
 
 // export default allows function to be imported to other files
 // function to display the home screen/page
@@ -16,12 +29,12 @@ export default function HomeScreen() {
             {/* Mini-stats */}
             <View style={styles.grid}>
                 <View style={styles.row}>
-                    <StatCard icon="🔥" value={7} desc="Day Streak" />
-                    <StatCard icon="🏆" value={12} desc="Workouts" />
+                    <StatCard icon="🔥" value={dayStreak} desc="Day Streak" />
+                    <StatCard icon="🏆" value={workouts} desc="Workouts" />
                 </View>
                 <View style={styles.row}>
-                    <StatCard icon="⭐" value={850} desc="XP Points" />
-                    <StatCard icon="⚡" value={5} desc="Achievements" />
+                    <StatCard icon="⭐" value={xpPoints} desc="XP Points" />
+                    <StatCard icon="⚡" value={achievements} desc="Achievements" />
                 </View>
             </View>
 
@@ -35,7 +48,11 @@ export default function HomeScreen() {
             </ View>
 
             {/* Challenges (TODO) */}
-
+            <DailyChallenge
+                challenge={challenge}
+                current={current}
+                total={total}
+            />
 
         </ScrollView>
     )
