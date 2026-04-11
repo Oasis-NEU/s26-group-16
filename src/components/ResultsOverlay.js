@@ -1,11 +1,11 @@
 // ResultsOverlay — full screen overlay shown after session ends
-// Displays total sets, reps, time, and current streak
+// Shows total sets, reps, exercise breakdown, time, and current streak
 //
-// TODO (Backend): Pull current streak from Supabase
 // TODO: Pass real elapsed time from SessionTimer up through WorkoutsScreen
 // TODO (Backend): Save session results to Supabase on mount (useEffect)
+// TODO (Backend): Pull current streak from Supabase
 
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Ionicons } from '@expo/vector-icons'
 import { colors, borders, spacing, typography } from '../style/theme'
@@ -13,18 +13,22 @@ import { colors, borders, spacing, typography } from '../style/theme'
 // Screen dimensions — used to make overlay fill the whole screen
 const { width, height } = Dimensions.get('window')
 
-export default function ResultsOverlay({ completedCount, totalExercises, exercises, completedIds, onDismiss, allCompleted }) {
+// Props:
+//   sessionResults — array of { name, weight, reps, sets } from each ExerciseCard
+//   completedIds — array of exercise IDs that were swiped complete
+//   onDismiss — called when user taps the button at the bottom
+//   allCompleted — whether all exercises were finished
+export default function ResultsOverlay({ sessionResults, completedIds, onDismiss, allCompleted }) {
 
-    // Calculate total reps from completed exercises only
-    // TODO (Backend): Replace with real logged reps from Supabase
-    const totalReps = exercises
-        .filter(e => completedIds.includes(e.id))
-        .reduce((sum, e) => sum + (e.reps * e.sets), 0)
+    // Total reps = sum of (reps * sets) across all exercises
+    const totalReps = sessionResults.reduce(
+        (sum, r) => sum + (Number(r.reps) * Number(r.sets)), 0
+    )
 
-    // Calculate total sets from completed exercises only
-    const totalSets = exercises
-        .filter(e => completedIds.includes(e.id))
-        .reduce((sum, e) => sum + e.sets, 0)
+    // Total sets = sum of sets across all exercises
+    const totalSets = sessionResults.reduce(
+        (sum, r) => sum + Number(r.sets), 0
+    )
 
     // TODO: Replace with real elapsed time passed from SessionTimer
     const sessionTime = '00:00'
@@ -47,60 +51,85 @@ export default function ResultsOverlay({ completedCount, totalExercises, exercis
                 <View style={[styles.dot, styles.dotBottomLeft]} />
                 <View style={[styles.dot, styles.dotBottomRight]} />
 
-                {/* Trophy icon circle */}
-                <View style={styles.trophyWrapper}>
+                {/* ScrollView so content doesn't get cut off on smaller screens */}
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {/* Trophy circle */}
                     <View style={styles.trophyCircle}>
                         <Ionicons name="trophy" size={60} color={colors.textLight} />
                     </View>
-                </View>
 
-                {/* Main title */}
-                <Text style={styles.title}>AMAZING{'\n'}WORK!</Text>
-                <Text style={styles.subtitle}>You're a FITNESS BEAST!</Text>
+                    {/* Main title */}
+                    <Text style={styles.title}>AMAZING{'\n'}WORK!</Text>
+                    <Text style={styles.subtitle}>You're a FITNESS BEAST!</Text>
 
-                {/* Stats row — sets and reps side by side */}
-                <View style={styles.statsCard}>
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total Sets</Text>
-                        <Text style={styles.statValue}>{totalSets}</Text>
+                    {/* Total sets + reps side by side */}
+                    <View style={styles.statsCard}>
+                        <View style={styles.statItem}>
+                            <Text style={styles.statLabel}>Total Sets</Text>
+                            <Text style={styles.statValue}>{totalSets}</Text>
+                        </View>
+                        <View style={styles.statDivider} />
+                        <View style={styles.statItem}>
+                            <Text style={styles.statLabel}>Total Reps</Text>
+                            <Text style={styles.statValue}>{totalReps}</Text>
+                        </View>
                     </View>
-                    <View style={styles.statDivider} />
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Total Reps</Text>
-                        <Text style={styles.statValue}>{totalReps}</Text>
+
+                    {/* Per-exercise breakdown — shows what user entered */}
+                    <View style={styles.breakdownCard}>
+                        <Text style={styles.breakdownTitle}>Exercise Breakdown</Text>
+                        {sessionResults.map((result, i) => (
+                            <View
+                                key={i}
+                                style={[
+                                    styles.breakdownRow,
+                                    // No border on last row
+                                    i === sessionResults.length - 1 && { borderBottomWidth: 0 }
+                                ]}
+                            >
+                                <Text style={styles.breakdownName}>{result.name}</Text>
+                                <Text style={styles.breakdownDetail}>
+                                    {result.weight} · {result.reps} reps · {result.sets} sets
+                                </Text>
+                            </View>
+                        ))}
                     </View>
-                </View>
 
-                {/* Session time card — black */}
-                <View style={styles.timeCard}>
-                    <Ionicons name="timer-outline" size={22} color={colors.streakCard} />
-                    <View>
-                        <Text style={styles.timeLabel}>Session Time</Text>
-                        {/* TODO: Replace with real elapsed time */}
-                        <Text style={styles.timeValue}>{sessionTime}</Text>
+                    {/* Session time — black card */}
+                    <View style={styles.timeCard}>
+                        <Ionicons name="timer-outline" size={22} color={colors.streakCard} />
+                        <View>
+                            <Text style={styles.timeLabel}>Session Time</Text>
+                            {/* TODO: Replace with real elapsed time */}
+                            <Text style={styles.timeValue}>{sessionTime}</Text>
+                        </View>
                     </View>
-                </View>
 
-                {/* Streak card — gold */}
-                <View style={styles.streakCard}>
-                    <Ionicons name="flame" size={22} color={colors.textDark} />
-                    <View>
-                        <Text style={styles.streakLabel}>Current Streak</Text>
-                        {/* TODO (Backend): Replace with real streak from Supabase */}
-                        <Text style={styles.streakValue}>{currentStreak} Days 🔥</Text>
+                    {/* Current streak — gold card */}
+                    <View style={styles.streakCard}>
+                        <Ionicons name="flame" size={22} color={colors.textDark} />
+                        <View>
+                            <Text style={styles.streakLabel}>Current Streak</Text>
+                            {/* TODO (Backend): Replace with real streak from Supabase */}
+                            <Text style={styles.streakValue}>{currentStreak} Days 🔥</Text>
+                        </View>
                     </View>
-                </View>
 
-                {/* Dismiss button */}
-                <View style={styles.dismissShadow}>
-                    <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
-                        <Text style={styles.dismissText}>
-                            {/* If all done, show AWESOME, otherwise let them continue */}
-                            {allCompleted ? 'AWESOME! 🎉' : 'Continue Session'}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Dismiss button
+                        If all exercises done → "AWESOME! 🎉" → goes to done screen
+                        If not all done → "Continue Session" → goes back to active */}
+                    <View style={styles.dismissShadow}>
+                        <TouchableOpacity style={styles.dismissButton} onPress={onDismiss}>
+                            <Text style={styles.dismissText}>
+                                {allCompleted ? 'AWESOME! 🎉' : 'Continue Session'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
 
+                </ScrollView>
             </LinearGradient>
         </View>
     )
@@ -118,9 +147,12 @@ const styles = StyleSheet.create({
     },
     gradient: {
         flex: 1,
+    },
+    scrollContent: {
         alignItems: 'center',
-        justifyContent: 'center',
         padding: spacing.lg,
+        paddingTop: 80,
+        paddingBottom: 60,
     },
     // Decorative floating dots
     dot: {
@@ -129,15 +161,11 @@ const styles = StyleSheet.create({
         borderWidth: 3,
         borderColor: 'rgba(255,255,255,0.4)',
     },
-    dotTopLeft:     { width: 40, height: 40, top: 60,  left: 20,  backgroundColor: colors.streakCard },
-    dotTopRight:    { width: 28, height: 28, top: 90,  right: 50, backgroundColor: 'rgba(255,255,255,0.3)' },
-    dotBottomLeft:  { width: 50, height: 50, bottom: 80, left: 30, backgroundColor: colors.streakCard },
+    dotTopLeft:     { width: 40, height: 40, top: 60,    left: 20,  backgroundColor: colors.streakCard },
+    dotTopRight:    { width: 28, height: 28, top: 90,    right: 50, backgroundColor: 'rgba(255,255,255,0.3)' },
+    dotBottomLeft:  { width: 50, height: 50, bottom: 80, left: 30,  backgroundColor: colors.streakCard },
     dotBottomRight: { width: 35, height: 35, bottom: 60, right: 20, backgroundColor: 'rgba(255,255,255,0.3)' },
-
-    // Trophy circle
-    trophyWrapper: {
-        marginBottom: spacing.lg,
-    },
+    // Gold trophy circle
     trophyCircle: {
         width: 130,
         height: 130,
@@ -147,6 +175,7 @@ const styles = StyleSheet.create({
         borderColor: colors.border,
         alignItems: 'center',
         justifyContent: 'center',
+        marginBottom: spacing.lg,
     },
     title: {
         fontSize: 48,
@@ -162,7 +191,7 @@ const styles = StyleSheet.create({
         color: colors.streakCard,
         marginBottom: spacing.lg,
     },
-    // White card with sets + reps
+    // White card — total sets and reps
     statsCard: {
         backgroundColor: colors.background,
         borderRadius: borders.standard.borderRadius,
@@ -191,6 +220,38 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: '900',
         color: colors.primary,
+    },
+    // White card — per exercise breakdown
+    breakdownCard: {
+        backgroundColor: colors.background,
+        borderRadius: borders.standard.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        padding: spacing.lg,
+        width: '100%',
+        marginBottom: spacing.sm,
+    },
+    breakdownTitle: {
+        ...typography.body,
+        fontSize: 16,
+        color: colors.textDark,
+        marginBottom: spacing.sm,
+    },
+    breakdownRow: {
+        paddingVertical: spacing.sm,
+        borderBottomWidth: 2,
+        borderBottomColor: colors.inputBackground,
+    },
+    breakdownName: {
+        ...typography.small,
+        fontSize: 14,
+        color: colors.textDark,
+        fontWeight: '900',
+    },
+    breakdownDetail: {
+        ...typography.small,
+        color: colors.textMuted,
+        marginTop: 2,
     },
     // Black session time card
     timeCard: {

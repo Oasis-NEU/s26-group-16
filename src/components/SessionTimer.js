@@ -6,7 +6,8 @@
 // 1. Add a useState for seconds: const [seconds, setSeconds] = useState(0)
 // 2. Add a useEffect that runs setInterval every 1000ms to increment seconds
 // 3. Format seconds into MM:SS for display
-// 4. Make sure to clearInterval when the component unmounts (return clearInterval in useEffect)
+// 4. Make sure to clearInterval when the component unmounts
+//    (return clearInterval in useEffect cleanup)
 // 5. Pass the elapsed time up to WorkoutsScreen so ResultsOverlay can show it
 
 import { View, Text, StyleSheet } from 'react-native'
@@ -14,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { colors, borders, spacing, typography } from '../style/theme'
 
 export default function SessionTimer() {
-    // TODO: Replace '00:00' with live timer value
+    // TODO: Replace '00:00' with live timer value from useState + useEffect
     const displayTime = '00:00'
 
     return (
@@ -63,11 +64,11 @@ const styles = StyleSheet.create({
         color: colors.textLight,
         fontSize: 18,
     },
-    // Big bold timer digits on the right
+    // tabular-nums keeps digit width consistent so timer doesn't jump around
     time: {
         fontSize: 32,
         fontWeight: '900',
         color: colors.textLight,
-        fontVariant: ['tabular-nums'], // keeps digits same width so timer doesn't jump
+        fontVariant: ['tabular-nums'],
     },
 })

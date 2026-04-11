@@ -1,21 +1,36 @@
-import { View, Text, StyleSheet } from 'react-native'
+// PersonalInfo — white card with rows of key/value personal info
 
-function InfoRow({ label, value }) {
+import { View, Text, StyleSheet } from 'react-native'
+import { colors, borders, spacing, typography } from '../style/theme'
+
+// Individual info row — label on left, value on right
+// isLast removes the bottom border on the last row
+function InfoRow({ label, value, isLast }) {
     return (
-        <View style={styles.row}>
+        <View style={[
+            styles.row,
+            isLast && { borderBottomWidth: 0 }
+        ]}>
             <Text style={styles.label}>{label}</Text>
             <Text style={styles.value}>{value}</Text>
         </View>
     )
 }
 
+// Props: data — array of { key: string, value: string }
 export default function PersonalInfo({ data }) {
     return (
         <View style={styles.shadowWrapper}>
             <View style={styles.card}>
                 <Text style={styles.title}>Personal Info</Text>
                 {data.map((item, index) => (
-                    <InfoRow key={index} label={item.key} value={item.value} />
+                    <InfoRow
+                        key={index}
+                        label={item.key}
+                        value={item.value}
+                        // Last row check so we don't render a bottom border
+                        isLast={index === data.length - 1}
+                    />
                 ))}
             </View>
         </View>
@@ -24,41 +39,42 @@ export default function PersonalInfo({ data }) {
 
 const styles = StyleSheet.create({
     shadowWrapper: {
-        backgroundColor: '#000000',
-        borderRadius: 24,
-        marginVertical: 8,
+        backgroundColor: colors.border,
+        borderRadius: borders.standard.borderRadius,
+        marginVertical: spacing.sm,
         transform: [{ translateX: 4 }, { translateY: 4 }],
     },
     card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 24,
-        borderWidth: 4,
-        borderColor: '#000000',
-        padding: 20,
+        backgroundColor: colors.background,
+        borderRadius: borders.standard.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        padding: spacing.lg,
         transform: [{ translateX: -4 }, { translateY: -4 }],
     },
     title: {
+        ...typography.body,
         fontSize: 18,
-        fontWeight: '900',
-        color: '#000000',
-        marginBottom: 12,
+        color: colors.textDark,
+        marginBottom: spacing.sm,
     },
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: spacing.sm,
         borderBottomWidth: 2,
-        borderBottomColor: '#e5e7eb',
+        borderBottomColor: colors.inputBackground,
     },
     label: {
+        ...typography.small,
+        color: colors.textMuted,
         fontSize: 14,
-        fontWeight: '700',
-        color: '#6b7280',
     },
     value: {
+        ...typography.small,
+        color: colors.textDark,
         fontSize: 14,
         fontWeight: '900',
-        color: '#000000',
     },
 })

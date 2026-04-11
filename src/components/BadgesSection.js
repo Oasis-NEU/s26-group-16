@@ -1,14 +1,20 @@
+// BadgesSection — 2x2 grid of badge cards, each with an icon and name
+
 import { View, Text, StyleSheet } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
+import { colors, borders, spacing, typography } from '../style/theme'
 
+// Badge definitions — icon name, label, gradient colors
 const badges = [
-    { emoji: '🏆', name: 'Champion', gradientColors: ['#f87171', '#ef4444'] },
-    { emoji: '⚡', name: '7 Day Streak', gradientColors: ['#ef4444', '#dc2626'] },
-    { emoji: '📈', name: 'Strong Start', gradientColors: ['#374151', '#1f2937'] },
-    { emoji: '❤️', name: 'Speed Demon', gradientColors: ['#000000', '#111827'] },
+    { icon: 'battery-full-outline',      name: 'Unlimited Stamina',     gradientColors: ['#f87171', colors.primary] },
+    { icon: 'trending-up',       name: 'Only Up From Here', gradientColors: [colors.streakCard, '#F97316'] },
+    { icon: 'lock-closed', name: 'Locked In',  gradientColors: ['#374151', '#1f2937'] },
+    { icon: 'ribbon',       name: 'Week Warrior',   gradientColors: [colors.primary, '#b91c1c'] },
 ]
 
-function BadgeCard({ emoji, name, gradientColors }) {
+// Individual badge card
+function BadgeCard({ icon, name, gradientColors }) {
     return (
         <View style={styles.shadowWrapper}>
             <LinearGradient
@@ -17,7 +23,7 @@ function BadgeCard({ emoji, name, gradientColors }) {
                 end={{ x: 1, y: 1 }}
                 style={styles.card}
             >
-                <Text style={styles.emoji}>{emoji}</Text>
+                <Ionicons name={icon} size={36} color={colors.textLight} style={styles.icon} />
                 <Text style={styles.name}>{name}</Text>
             </LinearGradient>
         </View>
@@ -27,7 +33,13 @@ function BadgeCard({ emoji, name, gradientColors }) {
 export default function BadgesSection() {
     return (
         <View style={styles.container}>
-            <Text style={styles.sectionTitle}>🏅  Your Badges</Text>
+            {/* Section header with ribbon icon */}
+            <View style={styles.headerRow}>
+                <Ionicons name="ribbon" size={22} color={colors.primary} />
+                <Text style={styles.sectionTitle}>Your Badges</Text>
+            </View>
+
+            {/* 2x2 badge grid — flexWrap handles the two columns */}
             <View style={styles.grid}>
                 {badges.map((badge, i) => (
                     <BadgeCard key={i} {...badge} />
@@ -39,41 +51,46 @@ export default function BadgesSection() {
 
 const styles = StyleSheet.create({
     container: {
-        marginVertical: 8,
+        marginVertical: spacing.sm,
+    },
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        marginBottom: spacing.sm,
     },
     sectionTitle: {
+        ...typography.sectionTitle,
         fontSize: 20,
-        fontWeight: '900',
-        color: '#000000',
-        marginBottom: 12,
     },
+    // flexWrap lets cards flow into 2 columns
     grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 10,
+        gap: spacing.sm,
     },
+    // Each card takes up ~half the row width
     shadowWrapper: {
         width: '47%',
-        backgroundColor: '#000000',
-        borderRadius: 16,
+        backgroundColor: colors.border,
+        borderRadius: borders.small.borderRadius,
         transform: [{ translateX: 3 }, { translateY: 3 }],
     },
     card: {
-        borderRadius: 16,
-        borderWidth: 4,
-        borderColor: '#000000',
-        padding: 16,
+        borderRadius: borders.small.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        padding: spacing.md,
         alignItems: 'center',
         transform: [{ translateX: -3 }, { translateY: -3 }],
     },
-    emoji: {
-        fontSize: 36,
-        marginBottom: 8,
+    icon: {
+        marginBottom: spacing.sm,
     },
     name: {
-        color: 'white',
+        ...typography.small,
+        color: colors.textLight,
         fontSize: 13,
-        fontWeight: '900',
         textAlign: 'center',
     },
 })

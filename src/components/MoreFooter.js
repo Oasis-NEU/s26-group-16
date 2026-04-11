@@ -1,11 +1,15 @@
+// MoreFooter — white card at the bottom with copyright info
+
 import { View, Text, StyleSheet } from 'react-native'
+import { colors, borders, spacing, typography } from '../style/theme'
 
 export default function MoreFooter() {
     return (
         <View style={styles.shadowWrapper}>
             <View style={styles.footer}>
-                <Text style={styles.footerText}>Made with care for fitness enthusiasts</Text>
-                <Text style={styles.footerSubText}>© 2026 Gym Tracker. All rights reserved.</Text>
+                {/* Heart emoji is fine here — small decorative detail in static text */}
+                <Text style={styles.footerText}>Made with ❤️ for fitness enthusiasts</Text>
+                <Text style={styles.footerSubText}>© 2026 WaCow. All rights reserved.</Text>
             </View>
         </View>
     )
@@ -13,31 +17,30 @@ export default function MoreFooter() {
 
 const styles = StyleSheet.create({
     shadowWrapper: {
-        backgroundColor: '#000000',
-        borderRadius: 24,
-        marginVertical: 8,
+        backgroundColor: colors.border,
+        borderRadius: borders.standard.borderRadius,
+        marginVertical: spacing.sm,
         transform: [{ translateX: 4 }, { translateY: 4 }],
     },
     footer: {
-        backgroundColor: '#ffffff',
-        borderRadius: 24,
-        borderWidth: 4,
-        borderColor: '#000000',
-        padding: 20,
+        backgroundColor: colors.background,
+        borderRadius: borders.standard.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        padding: spacing.lg,
         alignItems: 'center',
         transform: [{ translateX: -4 }, { translateY: -4 }],
     },
     footerText: {
-        fontSize: 13,
-        fontWeight: '700',
-        color: '#6b7280',
-        marginBottom: 4,
+        ...typography.small,
+        color: colors.textMuted,
+        marginBottom: spacing.xs,
         textAlign: 'center',
     },
     footerSubText: {
         fontSize: 11,
         fontWeight: '700',
-        color: '#9ca3af',
+        color: colors.textMuted,
         textAlign: 'center',
     },
 })

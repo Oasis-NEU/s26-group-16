@@ -1,121 +1,155 @@
-// ExerciseCard — single exercise card with swipe-to-complete gesture
+// ExerciseCard — single exercise card with editable weight/reps/sets
+// and double tap to complete/uncomplete
 //
-// SWIPE LOGIC EXPLAINED:
-// PanResponder listens to touch gestures on the card
-// When user drags right far enough (SWIPE_THRESHOLD), onComplete() is called
-// The card then shows a green "Done!" state
+// DOUBLE TAP LOGIC:
+// We track the last tap time using useRef
+// If two taps happen within 300ms, it's a double tap
+// Double tap toggles the completed state on/off
+// This works on both mobile (touch) and laptop (mouse click)
 //
-// TODO: Polish the swipe animation — currently it snaps, ideally it slides smoothly
-// TODO (Backend): When swiped, send completion to Supabase
+// forwardRef + useImperativeHandle lets WorkoutsScreen call
+// cardRef.current.getValues() to collect weight/reps/sets when session ends
+//
+// TODO (Backend): When completed, send completion to Supabase
 
-import { useRef, useState } from 'react'
-import { View, Text, StyleSheet, Animated, PanResponder } from 'react-native'
+import { useRef, useState, forwardRef, useImperativeHandle } from 'react'
+import { View, Text, StyleSheet, TextInput, TouchableOpacity } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { colors, borders, spacing, typography } from '../style/theme'
 
-// How far user needs to drag right to trigger completion (in pixels)
-const SWIPE_THRESHOLD = 120
+const ExerciseCard = forwardRef(function ExerciseCard(
+    { exercise, cardColor, isCompleted, onComplete, onUncomplete, sessionActive },
+    ref
+) {
+    // ─── Local state ──────────────────────────────────────────────────────────
+    const [weight, setWeight] = useState(String(exercise.weight))
+    const [reps,   setReps]   = useState(String(exercise.reps))
+    const [sets,   setSets]   = useState(String(exercise.sets))
 
-export default function ExerciseCard({ exercise, cardColor, isCompleted, swipeEnabled, onComplete }) {
-    // translateX tracks how far the card has been dragged horizontally
-    const translateX = useRef(new Animated.Value(0)).current
+    // Double tap detection — track last tap time
+    const lastTap = useRef(null)
 
-    // Whether this card has been locally swiped (for UI feedback)
-    const [swiped, setSwiped] = useState(false)
-
-    // ─── PanResponder setup ───────────────────────────────────────────────────
-    // PanResponder is React Native's built-in gesture handler
-    // It gives us dx (horizontal distance) and dy (vertical distance) of the drag
-    const panResponder = useRef(
-        PanResponder.create({
-            // Only capture the gesture if swiping is enabled and card isn't done
-            onMoveShouldSetPanResponder: (_, gestureState) => {
-                return swipeEnabled && !isCompleted && Math.abs(gestureState.dx) > 10
-            },
-
-            // As user drags, move the card with their finger
-            onPanResponderMove: (_, gestureState) => {
-                // Only allow dragging to the right (dx > 0)
-                if (gestureState.dx > 0) {
-                    translateX.setValue(gestureState.dx)
-                }
-            },
-
-            // When user lets go
-            onPanResponderRelease: (_, gestureState) => {
-                if (gestureState.dx >= SWIPE_THRESHOLD) {
-                    // Swiped far enough — mark as complete
-                    // Animate card sliding off to the right
-                    Animated.timing(translateX, {
-                        toValue: 500,
-                        duration: 200,
-                        useNativeDriver: true,
-                    }).start(() => {
-                        setSwiped(true)
-                        onComplete()
-                    })
-                } else {
-                    // Didn't swipe far enough — snap card back to original position
-                    Animated.spring(translateX, {
-                        toValue: 0,
-                        useNativeDriver: true,
-                    }).start()
-                }
-            },
+    // ─── useImperativeHandle ──────────────────────────────────────────────────
+    // Exposes getValues() to WorkoutsScreen via ref
+    // WorkoutsScreen calls this when End Session is pressed
+    useImperativeHandle(ref, () => ({
+        getValues: () => ({
+            name:   exercise.name,
+            weight: weight,
+            reps:   reps,
+            sets:   sets,
         })
-    ).current
+    }))
+
+    // ─── Double tap handler ───────────────────────────────────────────────────
+    // Two taps within 300ms = double tap
+    // Toggles completed state on/off
+    const handleDoubleTap = () => {
+        if (!sessionActive) return // ignore taps before session starts
+        const now = Date.now()
+        if (lastTap.current && now - lastTap.current < 300) {
+            // Double tap detected — toggle
+            if (isCompleted) {
+                onUncomplete() // uncheck if already done
+            } else {
+                onComplete()   // check off if not done
+            }
+            lastTap.current = null // reset so next tap starts fresh
+        } else {
+            lastTap.current = now
+        }
+    }
 
     // ─── Completed state ──────────────────────────────────────────────────────
-    if (isCompleted || swiped) {
+    // When completed, show greyed out card with checkmark
+    // User can double tap again to uncheck
+    if (isCompleted) {
         return (
-            <View style={styles.completedWrapper}>
+            <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={handleDoubleTap}
+                style={styles.completedWrapper}
+            >
                 <View style={styles.completedCard}>
                     <Ionicons name="checkmark-circle" size={24} color={colors.primary} />
                     <Text style={styles.completedText}>{exercise.name} — Done!</Text>
+                    <Text style={styles.undoHint}>double tap to undo</Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         )
     }
 
-    // ─── Normal card ──────────────────────────────────────────────────────────
+    // ─── Active card ──────────────────────────────────────────────────────────
     return (
-        // Animated.View moves with the swipe gesture via translateX
-        <Animated.View
-            style={[styles.shadowWrapper, { transform: [{ translateX }] }]}
-            {...(swipeEnabled ? panResponder.panHandlers : {})}
+        <TouchableOpacity
+            activeOpacity={0.95}
+            onPress={handleDoubleTap}
+            style={styles.shadowWrapper}
         >
             <View style={[styles.card, { backgroundColor: cardColor.bg }]}>
-                {/* Exercise name */}
-                <Text style={[styles.exerciseName, { color: cardColor.text }]}>
-                    {exercise.name}
-                </Text>
+                {/* Exercise name + double tap hint */}
+                <View style={styles.nameRow}>
+                    <Text style={[styles.exerciseName, { color: cardColor.text }]}>
+                        {exercise.name}
+                    </Text>
+                    {/* Only show hint when session is active */}
+                    {sessionActive && (
+                        <Text style={[styles.tapHint, { color: cardColor.text }]}>
+                            double tap to complete
+                        </Text>
+                    )}
+                </View>
 
-                {/* Three stat boxes: weight, reps, sets */}
+                {/* Three editable stat boxes */}
                 <View style={styles.statsRow}>
-                    <StatBox label="WEIGHT" value={exercise.weight} cardColor={cardColor} />
-                    <StatBox label="REP"    value={exercise.reps}   cardColor={cardColor} />
-                    <StatBox label="SET"    value={exercise.sets}   cardColor={cardColor} />
+                    <EditableStatBox
+                        label="WEIGHT"
+                        value={weight}
+                        onChangeText={setWeight}
+                        cardColor={cardColor}
+                        keyboardType="default"
+                    />
+                    <EditableStatBox
+                        label="REPS"
+                        value={reps}
+                        onChangeText={setReps}
+                        cardColor={cardColor}
+                        keyboardType="number-pad"
+                    />
+                    <EditableStatBox
+                        label="SETS"
+                        value={sets}
+                        onChangeText={setSets}
+                        cardColor={cardColor}
+                        keyboardType="number-pad"
+                    />
                 </View>
             </View>
-        </Animated.View>
+        </TouchableOpacity>
     )
-}
+})
 
-// Small stat box inside each exercise card
-function StatBox({ label, value, cardColor }) {
-    // The stat box background is slightly darker/lighter than the card
-    // We use rgba overlay to achieve this without hardcoding colors
+// ─── Editable stat box ────────────────────────────────────────────────────────
+// TextInput lets user tap and edit the value
+// selectTextOnFocus highlights all text when tapped — easy to replace
+function EditableStatBox({ label, value, onChangeText, cardColor, keyboardType }) {
     return (
         <View style={[styles.statBox, { backgroundColor: 'rgba(0,0,0,0.15)' }]}>
             <Text style={[styles.statLabel, { color: cardColor.text, opacity: 0.7 }]}>
                 {label}
             </Text>
-            <Text style={[styles.statValue, { color: cardColor.text }]}>
-                {value}
-            </Text>
+            <TextInput
+                style={[styles.statValue, { color: cardColor.text }]}
+                value={value}
+                onChangeText={onChangeText}
+                keyboardType={keyboardType}
+                selectTextOnFocus
+            />
         </View>
     )
 }
+
+export default ExerciseCard
 
 const styles = StyleSheet.create({
     shadowWrapper: {
@@ -132,10 +166,19 @@ const styles = StyleSheet.create({
         padding: spacing.lg,
         transform: [{ translateX: -4 }, { translateY: -4 }],
     },
+    nameRow: {
+        marginBottom: spacing.md,
+    },
     exerciseName: {
         fontSize: 20,
         fontWeight: '900',
-        marginBottom: spacing.md,
+    },
+    // Small hint shown below exercise name when session is active
+    tapHint: {
+        fontSize: 11,
+        fontWeight: '700',
+        opacity: 0.6,
+        marginTop: 2,
     },
     statsRow: {
         flexDirection: 'row',
@@ -157,6 +200,7 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 20,
         fontWeight: '900',
+        minHeight: 28,
     },
     // Completed state
     completedWrapper: {
@@ -176,6 +220,12 @@ const styles = StyleSheet.create({
     },
     completedText: {
         ...typography.body,
+        color: colors.textMuted,
+        flex: 1,
+    },
+    undoHint: {
+        fontSize: 11,
+        fontWeight: '700',
         color: colors.textMuted,
     },
 })
