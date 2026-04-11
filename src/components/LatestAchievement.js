@@ -1,69 +1,78 @@
+// LatestAchievement — orange gradient card showing the most recent badge earned
+
 import { View, Text, StyleSheet } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
+import { colors, borders, spacing, typography } from '../style/theme'
 
 export default function LatestAchievement() {
     return (
         <View style={styles.shadowWrapper}>
-            <View style={styles.card}>
+            <LinearGradient
+                colors={['#F5A623', '#F97316']} // gold → orange
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.card}
+            >
+                {/* White circle with ribbon icon */}
                 <View style={styles.iconWrapper}>
-                    <Text style={styles.icon}>🏆</Text>
+                    <Ionicons name="ribbon" size={32} color={colors.streakCard} />
                 </View>
+
+                {/* Achievement text info */}
                 <View style={styles.textBlock}>
                     <Text style={styles.heading}>Latest Achievement</Text>
                     <Text style={styles.name}>Week Warrior</Text>
                     <Text style={styles.description}>5 workouts in one week!</Text>
                 </View>
-            </View>
+            </LinearGradient>
         </View>
     )
 }
 
 const styles = StyleSheet.create({
     shadowWrapper: {
-        backgroundColor: '#000000',
-        borderRadius: 24,
-        marginVertical: 8,
+        backgroundColor: colors.border,
+        borderRadius: borders.standard.borderRadius,
+        marginVertical: spacing.sm,
         transform: [{ translateX: 4 }, { translateY: 4 }],
     },
     card: {
-        backgroundColor: '#ffffff',
-        borderRadius: 24,
-        borderWidth: 4,
-        borderColor: '#000000',
-        padding: 20,
-        flexDirection: 'row',
+        borderRadius: borders.standard.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        padding: spacing.lg,
+        flexDirection: 'row', // icon on left, text on right
         alignItems: 'center',
-        gap: 16,
+        gap: spacing.md,
         transform: [{ translateX: -4 }, { translateY: -4 }],
     },
+    // White circle that holds the ribbon icon
     iconWrapper: {
-        backgroundColor: '#ef4444',
+        backgroundColor: colors.background,
         borderRadius: 999,
-        borderWidth: 4,
-        borderColor: '#000000',
+        borderWidth: 3,
+        borderColor: colors.border,
         width: 68,
         height: 68,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    icon: {
-        fontSize: 32,
-    },
     textBlock: {
         flex: 1,
     },
     heading: {
-        fontSize: 16,
-        fontWeight: '900',
-        color: '#000000',
+        ...typography.body,
+        color: colors.textLight,
     },
     name: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#000000',
+        color: colors.textLight,
     },
     description: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#6b7280',
+        ...typography.small,
+        color: colors.textLight,
+        opacity: 0.9,
     },
 })

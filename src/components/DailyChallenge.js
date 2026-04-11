@@ -1,29 +1,33 @@
-// Component for the daily challenges in Home Screen
-// A component is a reusable element that can be displayed on any screen
-// We make one by creating view(s) for it and display them via calling their functions
+// DailyChallenge — red card showing today's challenge with a progress bar
+// Props:
+//   challenge — string describing the challenge
+//   current — how many completed
+//   total — total needed to complete
 
 import { View, Text, StyleSheet } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { colors, shadows, borders, spacing, typography } from '../style/theme'
 
 export default function DailyChallenge({ challenge, current, total }) {
     return (
         <View style={styles.card}>
-            {/* Title Row */}
+            {/* Title row with icon circle */}
             <View style={styles.titleRow}>
                 <View style={styles.iconCircle}>
-                    <Text style={styles.icon}>⭐</Text>
+                    <Ionicons name="star" size={30} color={colors.textLight} />
                 </View>
                 <Text style={styles.title}>Daily Challenge</Text>
             </View>
 
-            {/* Description */}
+            {/* Challenge description */}
             <Text style={styles.description}>{challenge}</Text>
 
-            {/* Progress Bar */}
+            {/* Progress bar — width is calculated from current/total */}
             <View style={styles.progressBar}>
                 <View style={[styles.progressFill, { width: `${(current / total) * 100}%` }]} />
             </View>
 
-            {/* Progress Text */}
+            {/* Progress text */}
             <Text style={styles.progressText}>{current}/{total} complete</Text>
         </View>
     )
@@ -31,62 +35,56 @@ export default function DailyChallenge({ challenge, current, total }) {
 
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#f71717',
-        borderRadius: 24,
-        padding: 24,
-        margin: 15,
-        borderWidth: 4,
-        borderColor: '#000000',
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: 6 },
-        shadowOpacity: 1,
-        shadowRadius: 0,
-        elevation: 6,
+        backgroundColor: colors.primary,
+        ...borders.standard,
+        ...shadows.hard,
+        padding: spacing.lg,
+        margin: spacing.md,
     },
     titleRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
-        marginBottom: 10,
+        gap: spacing.sm,
+        marginBottom: spacing.sm,
     },
+    // Gold circle behind the star icon
     iconCircle: {
-        backgroundColor: 'white',
+        backgroundColor: colors.streakCard,
         width: 40,
         height: 40,
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    icon: {
-        fontSize: 20,
-    },
     title: {
-        color: 'white',
+        ...typography.body,
+        color: colors.textLight,
         fontSize: 20,
         fontWeight: '900',
     },
     description: {
-        color: 'white',
-        fontSize: 16,
-        marginBottom: 15,
+        ...typography.body,
+        color: colors.textLight,
+        marginBottom: spacing.md,
     },
+    // Grey transparent track
     progressBar: {
         backgroundColor: 'rgba(255,255,255,0.3)',
         borderRadius: 10,
         height: 12,
         overflow: 'hidden',
         borderWidth: 2,
-        borderColor: '#000',
-        marginBottom: 8,
+        borderColor: colors.border,
+        marginBottom: spacing.sm,
     },
+    // Gold fill — width set dynamically via inline style
     progressFill: {
-        backgroundColor: 'white',
+        backgroundColor: colors.streakCard,
         height: '100%',
         borderRadius: 10,
     },
     progressText: {
-        color: 'white',
-        fontSize: 13,
-        fontWeight: 'bold',
+        ...typography.small,
+        color: colors.textLight,
     }
 })

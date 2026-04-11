@@ -1,18 +1,26 @@
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+// More Screen — app info, menu options, and footer
+
+import { View, Text, ScrollView, StyleSheet } from 'react-native'
 import AppInfoCard from '../components/AppInfoCard'
 import MenuList from '../components/MenuList'
 import MoreFooter from '../components/MoreFooter'
+import { colors, typography, spacing } from '../style/theme'
 
 export default function MoreScreen() {
     return (
         <ScrollView style={styles.container}>
+            {/* Screen title */}
             <Text style={styles.title}>More Options</Text>
-            <Text style={styles.subtitle}>Customize your experience</Text>
+            <Text style={styles.subtitle}>Make it yours!</Text>
 
+            {/* App branding card */}
             <AppInfoCard />
-            <MenuList />
-            <MoreFooter />
 
+            {/* Menu rows — settings, notifications, etc */}
+            <MenuList />
+
+            {/* Footer with copyright */}
+            <MoreFooter />
         </ScrollView>
     )
 }
@@ -20,20 +28,18 @@ export default function MoreScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f5f5f5',
-        padding: 16,
+        backgroundColor: colors.backgroundTint,
+        padding: spacing.md,
     },
     title: {
-        fontSize: 32,
-        fontWeight: '900',
-        color: '#000000',
-        marginBottom: 4,
-        marginTop: 8,
+        ...typography.sectionTitle,
+        marginBottom: spacing.xs,
+        marginTop: spacing.sm,
     },
     subtitle: {
         fontSize: 15,
         fontWeight: '700',
-        color: '#6b7280',
-        marginBottom: 16,
+        color: colors.textMuted,
+        marginBottom: spacing.md,
     },
 })
