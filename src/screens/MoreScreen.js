@@ -1,56 +1,31 @@
 // More Screen — app info, menu options, and footer
-// Handles notification permission request on load
-// and test notification scheduling
-
+// Notifications temporarily disabled — needs development build
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native'
 import { useEffect } from 'react'
-import * as Notifications from 'expo-notifications'
+// import * as Notifications from 'expo-notifications'
 import AppInfoCard from '../components/AppInfoCard'
 import MenuList from '../components/MenuList'
 import MoreFooter from '../components/MoreFooter'
 import { colors, typography, spacing } from '../style/theme'
 
-// Tell Expo how to handle notifications when app is in foreground
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-})
+// Notifications handler disabled for now
+// Notifications.setNotificationHandler({
+//     handleNotification: async () => ({
+//         shouldShowAlert: true,
+//         shouldPlaySound: true,
+//         shouldSetBadge: false,
+//     }),
+// })
 
 export default function MoreScreen() {
+    // Notification permission disabled for now
+    // useEffect(() => {
+    //     Notifications.requestPermissionsAsync()
+    // }, [])
 
-    // Ask for notification permission when screen loads
-    useEffect(() => {
-        Notifications.requestPermissionsAsync()
-    }, [])
-
-    // Schedule a notification 10 seconds from now
-    // TODO: Replace with daily scheduled notification at a set time
+    // Placeholder until notifications are re-enabled
     const handleTestNotification = async () => {
-        const { status } = await Notifications.requestPermissionsAsync()
-
-        if (status !== 'granted') {
-            Alert.alert('Permission denied', 'Please enable notifications in Settings')
-            return
-        }
-
-        try {
-            await Notifications.scheduleNotificationAsync({
-                content: {
-                    title: "Hey Champion! 🐄",
-                    body: "Time to crush your workout today! 💪",
-                },
-                trigger: {
-                    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-                    seconds: 20
-                }
-            })
-            Alert.alert('Notification set!', 'Go to home screen — fires in 20 seconds.')
-        } catch (error) {
-            Alert.alert('Error', error.message)
-        }
+        Alert.alert('Coming Soon', 'Notifications require a development build to work.')
     }
 
     return (

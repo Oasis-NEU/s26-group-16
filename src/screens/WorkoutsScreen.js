@@ -1,90 +1,84 @@
 // Workouts Screen — manages the full workout session workflow
-// States: idle → active → results → done
+// States: picking → active → results → done
 //
 // HOW IT WORKS:
-// 1. User presses START SESSION button → session goes active
-// 2. User double taps a card to complete it → progress updates
-// 3. User double taps again to undo → progress decrements
-// 4. User presses End Session OR completes all exercises → results overlay
-// 5. User dismisses results → done screen (if all done) or back to active
-//
-// HOW VALUES FLOW FROM CARDS TO RESULTS:
-// Each ExerciseCard exposes getValues() via useImperativeHandle
-// When session ends, WorkoutsScreen loops through cardRefs and calls getValues()
-// Those values get passed to ResultsOverlay
-//
-// TODO (Backend): Replace todaySession with real Supabase data
-// TODO (Backend): Track completed exercises in Supabase
-// TODO (Backend): On session end, save results to Supabase
+// 1. User picks exercises from ExercisePickerScreen
+// 2. User presses START SESSION button → session goes active
+// 3. User double taps a card to complete it → progress updates
+// 4. User double taps again to undo → progress decrements
+// 5. User presses End Session OR completes all exercises → results overlay
+// 6. Results are saved to Supabase sessions table
+// 7. User dismisses results → done screen or back to picking
 
-import { useState, useRef } from 'react'
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native'
+import { useState, useRef, useEffect } from 'react'
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import ExerciseCard from '../components/ExerciseCard'
 import SessionTimer from '../components/SessionTimer'
 import ResultsOverlay from '../components/ResultsOverlay'
+import ExercisePickerScreen from './ExercisePickerScreen'
+import { supabase } from '../lib/supabase'
 import { colors, borders, spacing, typography } from '../style/theme'
-
-// ─── Hardcoded session data ───────────────────────────────────────────────────
-// TODO (Backend): Replace with Supabase query that fetches today's session
-const todaySession = {
-    name: 'Pull Day',
-    exercises: [
-        { id: 1, name: 'Pull-Ups',       weight: '0', reps: 8,  sets: 3 },
-        { id: 2, name: 'Bent Over Rows', weight: '0', reps: 12, sets: 3 },
-        { id: 3, name: 'Bicep Curls',    weight: '0', reps: 15, sets: 3 },
-        { id: 4, name: 'Face Pulls',     weight: '0', reps: 12, sets: 3 },
-    ]
-}
 
 // Card colors cycle: red → gold → white
 const CARD_COLORS = [
-    { bg: colors.primary,         text: colors.textLight },
-    { bg: colors.streakCard,      text: colors.textDark  },
-    { bg: colors.background,      text: colors.textDark  },
+    { bg: colors.primary, text: colors.textLight },
+    { bg: colors.streakCard, text: colors.textDark },
+    { bg: colors.background, text: colors.textDark },
 ]
 
 export default function WorkoutsScreen() {
     // ─── State ────────────────────────────────────────────────────────────────
-    // sessionState controls which UI is shown
-    // 'idle'    = before session starts, START SESSION button visible
-    // 'active'  = session in progress, timer running, cards tappable
-    // 'results' = results overlay shown
-    // 'done'    = all exercises finished for the day
-    const [sessionState, setSessionState] = useState('idle')
-
-    // Set of completed exercise IDs
-    // Using a Set makes add/remove easy
-    // TODO (Backend): Sync with Supabase so progress persists
+    const [sessionState, setSessionState] = useState('picking')
+    const [selectedExercises, setSelectedExercises] = useState([])
     const [completedIds, setCompletedIds] = useState(new Set())
-
-    // Holds weight/reps/sets collected from cards when session ends
     const [sessionResults, setSessionResults] = useState([])
+    const [userId, setUserId] = useState(null)
+    const [sessionStartTime, setSessionStartTime] = useState(null)
 
-    // One ref per exercise card — used to call getValues() on each
-    const cardRefs = useRef(
-        todaySession.exercises.map(() => useRef(null))
-    ).current
+    // One ref per exercise card
+    const cardRefs = useRef([])
+
+    // ─── Get current user ID on mount ─────────────────────────────────────────
+    useEffect(() => {
+        getUserId()
+    }, [])
+
+    const getUserId = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+            const { data } = await supabase
+                .from('users')
+                .select('id')
+                .eq('auth_id', user.id)
+                .single()
+            if (data) setUserId(data.id)
+        }
+    }
 
     // ─── Derived values ───────────────────────────────────────────────────────
-    const totalExercises  = todaySession.exercises.length
-    const completedCount  = completedIds.size
-    const allCompleted    = completedCount === totalExercises
+    const totalExercises = selectedExercises.length
+    const completedCount = completedIds.size
+    const allCompleted = completedCount === totalExercises
     const progressPercent = totalExercises > 0
         ? (completedCount / totalExercises) * 100
         : 0
 
     // ─── Handlers ─────────────────────────────────────────────────────────────
 
-    // Start session button — switches from idle to active
-    const handleStartSession = () => setSessionState('active')
+    // Called when user picks exercises and taps Start Session
+    const handleStartSession = (exercises) => {
+        setSelectedExercises(exercises)
+        cardRefs.current = exercises.map(() => ({ current: null }))
+        setCompletedIds(new Set())
+        setSessionStartTime(new Date())
+        setSessionState('active')
+    }
 
-    // Mark an exercise as complete
     const handleComplete = (id) => {
         setCompletedIds(prev => {
             const updated = new Set(prev)
             updated.add(id)
-            // If all exercises done, go straight to results
             if (updated.size === totalExercises) {
                 collectResultsAndShow()
             }
@@ -92,7 +86,6 @@ export default function WorkoutsScreen() {
         })
     }
 
-    // Unmark an exercise — double tap again to undo
     const handleUncomplete = (id) => {
         setCompletedIds(prev => {
             const updated = new Set(prev)
@@ -101,26 +94,53 @@ export default function WorkoutsScreen() {
         })
     }
 
-    // Collect current values from all cards then show results
     const collectResultsAndShow = () => {
-        const results = cardRefs.map(ref => {
-            if (ref.current) return ref.current.getValues()
+        const results = cardRefs.current.map((ref, index) => {
+            if (ref.current) {
+                const values = ref.current.getValues()
+                return { ...values, workout_id: selectedExercises[index].id }
+            }
             return null
         }).filter(Boolean)
         setSessionResults(results)
         setSessionState('results')
     }
 
-    // End session button
     const handleEndSession = () => collectResultsAndShow()
 
-    // Dismiss results overlay
-    // All done → done screen
-    // Not all done → back to active
-    // TODO (Backend): Update Supabase with completed exercises on dismiss
-    const handleDismissResults = () => {
-        if (allCompleted) setSessionState('done')
-        else setSessionState('active')
+    // Save session results to Supabase and dismiss
+    const handleDismissResults = async () => {
+        if (userId && sessionResults.length > 0) {
+            const duration = sessionStartTime
+                ? Math.round((new Date() - sessionStartTime) / 60000)
+                : 0
+
+            const rows = sessionResults.map((r) => ({
+                user_id: userId,
+                workout_id: r.workout_id,
+                sets: parseInt(r.sets) || 0,
+                reps: parseInt(r.reps) || 0,
+                weight: parseInt(r.weight) || 0,
+                duration: duration,
+                date: new Date().toISOString(),
+            }))
+
+            const { error } = await supabase.from('sessions').insert(rows)
+            if (error) Alert.alert('Error saving', error.message)
+        }
+
+        if (allCompleted) {
+            setSessionState('done')
+        } else {
+            setSessionState('picking')
+            setSelectedExercises([])
+            setCompletedIds(new Set())
+        }
+    }
+
+    // ─── Render: Exercise Picker ──────────────────────────────────────────────
+    if (sessionState === 'picking') {
+        return <ExercisePickerScreen onStartSession={handleStartSession} />
     }
 
     // ─── Render: Done screen ──────────────────────────────────────────────────
@@ -132,57 +152,60 @@ export default function WorkoutsScreen() {
                 <Text style={styles.doneSubtitle}>
                     You crushed every exercise. Come back tomorrow! 🐄
                 </Text>
+                <TouchableOpacity
+                    style={styles.newSessionBtn}
+                    onPress={() => {
+                        setSessionState('picking')
+                        setSelectedExercises([])
+                        setCompletedIds(new Set())
+                    }}
+                >
+                    <Text style={styles.newSessionText}>Start New Session</Text>
+                </TouchableOpacity>
             </View>
         )
     }
 
-    // ─── Render: Main workout screen ──────────────────────────────────────────
+    // ─── Render: Active workout screen ────────────────────────────────────────
     return (
         <View style={{ flex: 1 }}>
             <ScrollView style={styles.container}>
 
-                {/* ── Header ── */}
+                {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.headerLabel}>
                         <Ionicons name="calendar-outline" size={16} color={colors.primary} />
                         <Text style={styles.headerLabelText}>TODAY'S SESSION</Text>
                     </View>
-                    <Text style={styles.sessionName}>{todaySession.name}</Text>
+                    <Text style={styles.sessionName}>
+                        {selectedExercises.length} Exercises
+                    </Text>
                 </View>
 
-                {/* ── START SESSION button — only in idle state ── */}
-                {sessionState === 'idle' && (
-                    <View style={styles.startButtonShadow}>
-                        <TouchableOpacity
-                            style={styles.startButton}
-                            onPress={handleStartSession}
-                        >
-                            <Text style={styles.startButtonText}>START</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                {/* Session Timer */}
+                <SessionTimer />
 
-                {/* ── Session Timer — only visible when active ── */}
-                {sessionState === 'active' && (
-                    // TODO: Wire timer to count up with useEffect + setInterval
-                    <SessionTimer />
-                )}
-
-                {/* ── Exercise list ── */}
-                {todaySession.exercises.map((exercise, index) => (
+                {/* Exercise list */}
+                {selectedExercises.map((exercise, index) => (
                     <ExerciseCard
                         key={exercise.id}
-                        ref={cardRefs[index]}
-                        exercise={exercise}
+                        ref={(el) => { cardRefs.current[index] = { current: el } }}
+                        exercise={{
+                            id: exercise.id,
+                            name: exercise.name,
+                            weight: '0',
+                            reps: 0,
+                            sets: 0,
+                        }}
                         cardColor={CARD_COLORS[index % CARD_COLORS.length]}
                         isCompleted={completedIds.has(exercise.id)}
-                        sessionActive={sessionState === 'active'}
+                        sessionActive={true}
                         onComplete={() => handleComplete(exercise.id)}
                         onUncomplete={() => handleUncomplete(exercise.id)}
                     />
                 ))}
 
-                {/* ── Progress bar ── */}
+                {/* Progress bar */}
                 <View style={styles.progressSection}>
                     <Text style={styles.progressLabel}>Progress</Text>
                     <Text style={styles.progressCount}>{completedCount} / {totalExercises}</Text>
@@ -191,27 +214,29 @@ export default function WorkoutsScreen() {
                     <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
                 </View>
 
-                {/* ── End Session button — only in active state ── */}
-                {sessionState === 'active' && (
-                    <View style={styles.endButtonShadow}>
-                        <TouchableOpacity
-                            style={styles.endButton}
-                            onPress={handleEndSession}
-                        >
-                            <Text style={styles.endButtonText}>End Session</Text>
-                        </TouchableOpacity>
-                    </View>
-                )}
+                {/* End Session button */}
+                <View style={styles.endButtonShadow}>
+                    <TouchableOpacity
+                        style={styles.endButton}
+                        onPress={handleEndSession}
+                    >
+                        <Text style={styles.endButtonText}>End Session</Text>
+                    </TouchableOpacity>
+                </View>
 
             </ScrollView>
 
-            {/* ── Results overlay — sits on top of everything ── */}
+            {/* Results overlay */}
             {sessionState === 'results' && (
                 <ResultsOverlay
                     sessionResults={sessionResults}
                     completedIds={completedIds}
                     onDismiss={handleDismissResults}
                     allCompleted={allCompleted}
+                    elapsedTime={sessionStartTime
+                        ? Math.floor((new Date() - sessionStartTime) / 1000)
+                        : 0
+                    }
                 />
             )}
         </View>
@@ -246,29 +271,6 @@ const styles = StyleSheet.create({
         color: colors.textDark,
         marginBottom: spacing.xs,
     },
-    // Start session button — green to stand out from red theme
-    startButtonShadow: {
-        backgroundColor: colors.border,
-        borderRadius: borders.standard.borderRadius,
-        marginHorizontal: spacing.md,
-        marginBottom: spacing.sm,
-        transform: [{ translateX: 4 }, { translateY: 4 }],
-    },
-    startButton: {
-        backgroundColor: colors.streakCard, // green — signals "go"
-        borderRadius: borders.standard.borderRadius,
-        borderWidth: borders.standard.borderWidth,
-        borderColor: colors.border,
-        paddingVertical: spacing.md,
-        alignItems: 'center',
-        transform: [{ translateX: -4 }, { translateY: -4 }],
-    },
-    startButtonText: {
-        ...typography.body,
-        color: colors.textLight,
-        fontSize: 28,
-        fontWeight: '900',
-    },
     progressSection: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -299,7 +301,6 @@ const styles = StyleSheet.create({
         height: '100%',
         borderRadius: 999,
     },
-    // End session button
     endButtonShadow: {
         backgroundColor: colors.border,
         borderRadius: borders.standard.borderRadius,
@@ -321,7 +322,6 @@ const styles = StyleSheet.create({
         color: colors.textLight,
         fontSize: 18,
     },
-    // Done screen
     doneContainer: {
         flex: 1,
         backgroundColor: colors.backgroundTint,
@@ -339,5 +339,19 @@ const styles = StyleSheet.create({
         ...typography.body,
         color: colors.textMuted,
         textAlign: 'center',
+    },
+    newSessionBtn: {
+        marginTop: spacing.lg,
+        backgroundColor: colors.primary,
+        borderRadius: borders.standard.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.xl,
+    },
+    newSessionText: {
+        color: colors.textLight,
+        fontSize: 18,
+        fontWeight: '900',
     },
 })
