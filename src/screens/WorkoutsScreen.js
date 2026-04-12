@@ -198,7 +198,7 @@ export default function WorkoutsScreen() {
                             style={styles.endButton}
                             onPress={handleEndSession}
                         >
-                            <Text style={styles.endButtonText}>End Session 🏁</Text>
+                            <Text style={styles.endButtonText}>End Session</Text>
                         </TouchableOpacity>
                     </View>
                 )}
