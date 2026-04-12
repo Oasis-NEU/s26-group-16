@@ -18,7 +18,7 @@ let daysActive = 12;
 let totalXP = 2650;
 let personalInfo = [
     { key: 'Member Since', value: 'January 2026' },
-    { key: 'Favorite Workout', value: 'Hip Thrust of Doom' },
+    { key: 'Favorite Workout', value: 'Bench Press' },
     { key: 'Weekly Goal', value: '5 workouts' },
 ]
 

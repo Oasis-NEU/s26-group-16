@@ -1,22 +1,25 @@
 // SessionTimer — red card showing elapsed session time
-//
-// TODO: Implement the actual timer using useEffect + setInterval
-// Right now it just displays a static "00:00"
-// When you implement it:
-// 1. Add a useState for seconds: const [seconds, setSeconds] = useState(0)
-// 2. Add a useEffect that runs setInterval every 1000ms to increment seconds
-// 3. Format seconds into MM:SS for display
-// 4. Make sure to clearInterval when the component unmounts
-//    (return clearInterval in useEffect cleanup)
-// 5. Pass the elapsed time up to WorkoutsScreen so ResultsOverlay can show it
-
+// Counts up every second from when the session starts
+import { useState, useEffect } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { colors, borders, spacing, typography } from '../style/theme'
 
 export default function SessionTimer() {
-    // TODO: Replace '00:00' with live timer value from useState + useEffect
-    const displayTime = '00:00'
+    const [seconds, setSeconds] = useState(0)
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSeconds((prev) => prev + 1)
+        }, 1000)
+
+        return () => clearInterval(interval)
+    }, [])
+
+    // Format seconds into MM:SS
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0')
+    const secs = (seconds % 60).toString().padStart(2, '0')
+    const displayTime = `${mins}:${secs}`
 
     return (
         <View style={styles.shadowWrapper}>
@@ -26,7 +29,6 @@ export default function SessionTimer() {
                     <Ionicons name="timer-outline" size={22} color={colors.textLight} />
                     <Text style={styles.label}>Session Timer</Text>
                 </View>
-
                 {/* Time display on the right */}
                 <Text style={styles.time}>{displayTime}</Text>
             </View>

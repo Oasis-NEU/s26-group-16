@@ -1,7 +1,6 @@
 // More Screen — app info, menu options, and footer
 // Handles notification permission request on load
 // and test notification scheduling
-
 import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native'
 import { useEffect } from 'react'
 import * as Notifications from 'expo-notifications'
@@ -20,7 +19,6 @@ Notifications.setNotificationHandler({
 })
 
 export default function MoreScreen() {
-
     // Ask for notification permission when screen loads
     useEffect(() => {
         Notifications.requestPermissionsAsync()
@@ -30,12 +28,10 @@ export default function MoreScreen() {
     // TODO: Replace with daily scheduled notification at a set time
     const handleTestNotification = async () => {
         const { status } = await Notifications.requestPermissionsAsync()
-
         if (status !== 'granted') {
             Alert.alert('Permission denied', 'Please enable notifications in Settings')
             return
         }
-
         try {
             await Notifications.scheduleNotificationAsync({
                 content: {
