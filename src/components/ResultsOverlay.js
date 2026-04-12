@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { colors, borders, spacing, typography } from '../style/theme'
 
 // Screen dimensions — used to make overlay fill the whole screen
-const { width, height } = Dimensions.get('window')
+const { width, height } = Dimensions.get('screen')
 
 // Props:
 //   sessionResults — array of { name, weight, reps, sets } from each ExerciseCard
@@ -114,7 +114,7 @@ export default function ResultsOverlay({ sessionResults, completedIds, onDismiss
                         <View>
                             <Text style={styles.streakLabel}>Current Streak</Text>
                             {/* TODO (Backend): Replace with real streak from Supabase */}
-                            <Text style={styles.streakValue}>{currentStreak} Days 🔥</Text>
+                            <Text style={styles.streakValue}>{currentStreak} Days</Text>
                         </View>
                     </View>
 
