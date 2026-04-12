@@ -1,31 +1,29 @@
 # Wacow — Fitness Tracking App
 
-A cross-platform fitness tracking app built with React Native (Expo) and Supabase. Designed to help users log workouts, track progress, and build consistency through gamification features like XP, streaks, and achievements.
+A cross-platform fitness tracking app built with React Native (Expo) and Supabase. Designed to help users log workouts, track progress, and build consistency through gamification.
 
 ## Tech Stack
 
 - **Frontend:** React Native (Expo), JavaScript
 - **Backend:** Supabase (PostgreSQL, Auth, Row Level Security)
-- **Navigation:** React Navigation (Bottom Tabs + Stack)
+- **Navigation:** React Navigation (Bottom Tabs)
 
-## Features
+## Implemented Features
 
 - **Authentication** — Email/password signup and login with persistent sessions
-- **Profile Setup** — 3-step onboarding flow collecting user info, body metrics, and fitness goals
+- **Profile Setup** — 3-step onboarding (basic info, body metrics, fitness goal)
 - **Exercise Library** — 55+ preset exercises across 12 muscle groups, searchable and filterable
-- **Workout Sessions** — Select exercises, track weight/reps/sets, live session timer, results summary
-- **Stats Dashboard** — Weekly stats, activity chart, monthly goal tracking, latest achievement
-- **Profile** — Level/XP system, workout stats, badges, personal info, edit profile
-- **Streaks** — Day streak tracking with automatic reset logic
-- **Achievements** — Unlockable badges with XP rewards
-- **More** — Settings, push notifications, app info, logout
+- **Workout Sessions** — Select exercises, track weight/reps/sets, live session timer, results summary saved to Supabase
+- **Profile** — View stats, personal info, logout
+- **Stats Dashboard** — UI built (hardcoded data for now)
+- **More Screen** — Push notifications (requires development build)
 
 ## Database Schema
 
 | Table | Purpose |
 |-------|---------|
 | `users` | Profile data, XP, goals, linked to Supabase Auth via `auth_id` |
-| `workouts` | Exercise definitions (preset and custom) |
+| `workouts` | Preset exercise definitions (55+ exercises) |
 | `sessions` | Logged workout sessions with sets, reps, weight, duration |
 | `achievement_definitions` | Achievement names, descriptions, XP rewards |
 | `user_achievements` | Records of which users earned which achievements |
