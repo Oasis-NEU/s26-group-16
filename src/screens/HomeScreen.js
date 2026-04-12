@@ -1,74 +1,88 @@
-// Home screen (In progress)
+// Home Screen — main screen showing hero card, stat cards, badges, and daily challenge
 
 import { View, ScrollView, StyleSheet, Text } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
 import HeroCard from '../components/HeroCard'
 import StatCard from '../components/StatCard'
 import BadgeCard from '../components/BadgeCard'
+import DailyChallenge from '../components/DailyChallenge'
+import { colors, typography, spacing } from '../style/theme'
 
-// export default allows function to be imported to other files
-// function to display the home screen/page
+// Hardcoded data for now — will be replaced with Supabase queries later
+let dayStreak = 9;
+let workouts = 25;
+let xpPoints = 750;
+let achievements = 5;
+let challenge = "Complete 50 push-ups today!";
+let current = 20;
+let total = 50;
+
 export default function HomeScreen() {
     return (
         <ScrollView style={styles.container}>
-            {/* Greetings */}
+            {/* Hero greeting card at the top */}
             <HeroCard />
 
-            {/* Mini-stats */}
+            {/* 2x2 grid of stat cards */}
             <View style={styles.grid}>
                 <View style={styles.row}>
-                    <StatCard icon="🔥" value={7} desc="Day Streak" />
-                    <StatCard icon="🏆" value={12} desc="Workouts" />
+                    {/* Day Streak — gold gradient card */}
+                    <StatCard iconName="flame" iconColor={colors.textDark} value={dayStreak} desc="Day Streak" useGradient />
+                    {/* Workouts — red card */}
+                    <StatCard iconName="barbell" iconColor={colors.textLight} value={workouts} desc="Workouts" backgroundColor={colors.workoutCard} />
                 </View>
                 <View style={styles.row}>
-                    <StatCard icon="⭐" value={850} desc="XP Points" />
-                    <StatCard icon="⚡" value={5} desc="Achievements" />
+                    {/* XP Points — white card */}
+                    <StatCard iconName="star" iconColor={colors.primary} value={xpPoints} desc="XP Points" backgroundColor={colors.xpCard} />
+                    {/* Achievements — black card */}
+                    <StatCard iconName="flash" iconColor="#FDE047" value={achievements} desc="Achievements" backgroundColor={colors.achievementCard} />
                 </View>
             </View>
 
-            {/* Badges */}
-            <Text style={styles.sectionTitle}> Top Badges </Text>
+            {/* Badges section header */}
+            <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Top Badges</Text>
+            </View>
 
+            {/* Badge row */}
             <View style={styles.badgeRow}>
-                <BadgeCard icon="🏆" name="Glorious Protein King" color="#ef0808" />
-                <BadgeCard icon="🔥" name="You're Hot!" color="#faa404" />
-                <BadgeCard icon="67" name="67" color="hsl(119, 91%, 50%)" />
-            </ View>
+                <BadgeCard icon="battery-full-outline" name="Unlimited Stamina" />
+                <BadgeCard icon="trending-up" name="Only Up From Here" />
+                <BadgeCard icon="lock-closed" name="Locked In" />
+            </View>
 
-            {/* Challenges (TODO) */}
-
-
+            {/* Daily challenge card at the bottom */}
+            <DailyChallenge challenge={challenge} current={current} total={total} />
         </ScrollView>
     )
 }
 
-// styles is class we made to hold different styling for various views
-const styles = StyleSheet.create({ // stylsheet.create better for performance
-    // fields/styles for views
-    // refer to the function above to see how these are used
+const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: colors.backgroundTint,
     },
-
     grid: {
-        marginHorizontal: 5,
+        marginHorizontal: spacing.sm,
     },
-
     row: {
         flexDirection: 'row',
     },
-
-    sectionTitle: {
-        fontSize: 25,
-        fontWeight: 500,
-        marginLeft: 15,
-        marginTop: 10,
-        marginBottom: 5,
+    sectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        marginLeft: spacing.md,
+        marginTop: spacing.sm,
+        marginBottom: spacing.xs,
     },
-
+    sectionTitle: {
+        ...typography.sectionTitle,
+    },
     badgeRow: {
         flexDirection: 'row',
         justifyContent: 'center',
-        paddingHorizontal: 10
+        paddingHorizontal: spacing.md,
+        marginBottom: spacing.xs,
     }
 })

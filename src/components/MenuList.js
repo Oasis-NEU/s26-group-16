@@ -1,27 +1,66 @@
+// MenuList — list of tappable menu rows with icons
+// Each item has a label, Ionicon, and gradient colors
+// Notifications row is gold — this is where the notification feature will live
+
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { Ionicons } from '@expo/vector-icons'
+import { colors, borders, spacing, typography } from '../style/theme'
 
+// Menu item definitions
+// gradientColors[0] = left, gradientColors[1] = right
 const menuItems = [
-    { emoji: '⚙️', label: 'Settings', gradientColors: ['#4b5563', '#374151'] },
-    { emoji: '🔔', label: 'Notifications', gradientColors: ['#f87171', '#ef4444'] },
-    { emoji: '❓', label: 'Help & Support', gradientColors: ['#374151', '#1f2937'] },
-    { emoji: '📤', label: 'Share App', gradientColors: ['#ef4444', '#dc2626'] },
-    { emoji: '⭐', label: 'Rate Us', gradientColors: ['#000000', '#111827'] },
-    { emoji: 'ℹ️', label: 'About', gradientColors: ['#dc2626', '#b91c1c'] },
+    {
+        label: 'Settings',
+        icon: 'settings-outline',
+        gradientColors: ['#4b5563', '#374151'],
+    },
+    {
+        label: 'Notifications',
+        icon: 'notifications-outline',
+        // Gold/orange gradient — this is where notification feature will live
+        // TODO: Wire onPress to navigate to notification settings
+        gradientColors: ['#F5A623', '#F97316'],
+    },
+    {
+        label: 'Help & Support',
+        icon: 'help-circle-outline',
+        gradientColors: ['#374151', '#1f2937'],
+    },
+    {
+        label: 'Share App',
+        icon: 'share-social-outline',
+        gradientColors: [colors.achievementCard, '#111827'],
+    },
+    {
+        label: 'Rate Us',
+        icon: 'star-outline',
+        gradientColors: ['#F5A623', '#F97316'],
+    },
+    {
+        label: 'About',
+        icon: 'information-circle-outline',
+        gradientColors: [colors.primary, '#b91c1c'],
+    },
 ]
 
-function MenuItem({ emoji, label, gradientColors }) {
+// Individual menu row
+// onPress is a placeholder for now — will be wired up per feature later
+function MenuItem({ label, icon, gradientColors }) {
     return (
         <View style={styles.shadowWrapper}>
-            <TouchableOpacity activeOpacity={0.9}>
+            <TouchableOpacity activeOpacity={0.85}>
                 <LinearGradient
                     colors={gradientColors}
                     start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                    end={{ x: 1, y: 0 }} // left to right gradient
                     style={styles.item}
                 >
+                    {/* Label on the left */}
                     <Text style={styles.label}>{label}</Text>
-                    <Text style={styles.emoji}>{emoji}</Text>
+
+                    {/* Icon on the right */}
+                    <Ionicons name={icon} size={22} color={colors.textLight} />
                 </LinearGradient>
             </TouchableOpacity>
         </View>
@@ -31,6 +70,7 @@ function MenuItem({ emoji, label, gradientColors }) {
 export default function MenuList() {
     return (
         <View style={styles.container}>
+            {/* Render a row for each menu item */}
             {menuItems.map((item, i) => (
                 <MenuItem key={i} {...item} />
             ))}
@@ -40,31 +80,28 @@ export default function MenuList() {
 
 const styles = StyleSheet.create({
     container: {
-        gap: 10,
-        marginVertical: 8,
+        gap: spacing.sm,
+        marginVertical: spacing.sm,
     },
     shadowWrapper: {
-        backgroundColor: '#000000',
-        borderRadius: 16,
+        backgroundColor: colors.border,
+        borderRadius: borders.small.borderRadius,
         transform: [{ translateX: 4 }, { translateY: 4 }],
     },
     item: {
-        borderRadius: 16,
-        borderWidth: 4,
-        borderColor: '#000000',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
+        borderRadius: borders.small.borderRadius,
+        borderWidth: borders.standard.borderWidth,
+        borderColor: colors.border,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         transform: [{ translateX: -4 }, { translateY: -4 }],
     },
     label: {
-        color: 'white',
+        ...typography.body,
+        color: colors.textLight,
         fontSize: 17,
-        fontWeight: '700',
-    },
-    emoji: {
-        fontSize: 22,
     },
 })
